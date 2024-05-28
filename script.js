@@ -1,18 +1,47 @@
-const bar = document.getElementById('bar');
-const close = document.getElementById('close');
-const nav = document.getElementById('navbar');
+const inbox = document.getElementById("inbox");
+const list = document.getElementById("list");
 
-if (bar)
-    {
-        bar.addEventListener('click', () =>{
-            nav.classList.add('active');
-        })
+function addTask(){
+    if(inbox.value === '')
+        {
+            alert("You must write something !!!");
+        }
+        else{
+            let li = document.createElement("li");
+            li.innerHTML = inbox.value;
+            list.appendChild(li);
+            let span = document.createElement("span");
+            span.innerHTML = "\u00d7";
+            li.appendChild(span);
+        }
+
+        inbox.value= '';
+        save();
+}
+
+
+list.addEventListener("click", function(e){
+    if(e.target.tagName === 'LI'){
+        e.target.classList.toggle("check");
+        save();
     }
 
-
-if (close)
+    else if(e.target.tagName === 'SPAN')
         {
-            close.addEventListener('click', () =>{
-                nav.classList.remove('active');
-            })
+            e.target.parentElement.remove();
+            save();
         }
+
+},false);
+
+function save()
+{
+    localStorage.setItem("data", list.innerHTML);
+}
+
+
+function show(){
+    list.innerHTML=localStorage.getItem("data");
+}
+
+show();
