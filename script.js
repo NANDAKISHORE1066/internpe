@@ -1,47 +1,118 @@
-const inbox = document.getElementById("inbox");
-const list = document.getElementById("list");
+var playerRed = "R";
+var playerYellow = "Y";
+var currPlayer = playerRed;
 
-function addTask(){
-    if(inbox.value === '')
-        {
-            alert("You must write something !!!");
-        }
-        else{
-            let li = document.createElement("li");
-            li.innerHTML = inbox.value;
-            list.appendChild(li);
-            let span = document.createElement("span");
-            span.innerHTML = "\u00d7";
-            li.appendChild(span);
-        }
+var gameOver = false;
+var board;
+var currColumn;
 
-        inbox.value= '';
-        save();
+var rows = 6;
+var columns = 7;
+
+window.onload = function(){
+    setGame();
 }
 
+function setGame(){
+    board = [];
+    currColumn = [5, 5, 5, 5, 5, 5, 5];
+    for(let r = 0; r < rows; r++) {
+        let row = [];
+        for(let c = 0; c < columns; c++) {
+            row.push(' ');
 
-list.addEventListener("click", function(e){
-    if(e.target.tagName === 'LI'){
-        e.target.classList.toggle("check");
-        save();
+            let tile = document.createElement("div");
+            tile.id = r.toString() + "-" + c.toString();
+            tile.classList.add("tile");
+            tile.addEventListener("click", setPiece);
+            document.getElementById("board").append(tile);
+        }
+        board.push(row);
+    }
+}
+
+function setPiece(){
+    if(gameOver) {
+        return;
+    }
+    let coords = this.id.split("-");
+    let c = parseInt(coords[1]);
+    let r = currColumn[c];
+    if(r < 0) {
+        return;
     }
 
-    else if(e.target.tagName === 'SPAN')
-        {
-            e.target.parentElement.remove();
-            save();
+    board[r][c] = currPlayer;
+    let tile = document.getElementById(r.toString() + "-" + c.toString());
+
+    if(currPlayer == playerRed) {
+        tile.classList.add("red-piece");
+        currPlayer = playerYellow; 
+    } else {
+        tile.classList.add("yellow-piece");
+        currPlayer = playerRed; 
+    }
+
+    currColumn[c] = r - 1;
+    checkWinner();
+}
+
+function checkWinner() {
+    // Horizontal check
+    for(let r = 0; r < rows; r++) {
+        for(let c = 0; c < columns - 3; c++) {
+            if(board[r][c] != ' ' && board[r][c] == board[r][c + 1] && board[r][c] == board[r][c + 2] && board[r][c] == board[r][c + 3]) {
+                setWinner(r, c);
+                return;
+            }
         }
+    }
 
-},false);
+    // Vertical check
+    for(let c = 0; c < columns; c++) {
+        for(let r = 0; r < rows - 3; r++) {
+            if(board[r][c] != ' ' && board[r][c] == board[r + 1][c] && board[r][c] == board[r + 2][c] && board[r][c] == board[r + 3][c]) {
+                setWinner(r, c);
+                return;
+            }
+        }
+    }
 
-function save()
-{
-    localStorage.setItem("data", list.innerHTML);
+    // Diagonal check (bottom left to top right)
+    for(let r = 3; r < rows; r++) {
+        for(let c = 0; c < columns - 3; c++) {
+            if(board[r][c] != ' ' && board[r][c] == board[r - 1][c + 1] && board[r][c] == board[r - 2][c + 2] && board[r][c] == board[r - 3][c + 3]) {
+                setWinner(r, c);
+                return;
+            }
+        }
+    }
+
+    // Diagonal check (top left to bottom right)
+    for(let r = 0; r < rows - 3; r++) {
+        for(let c = 0; c < columns - 3; c++) {
+            if(board[r][c] != ' ' && board[r][c] == board[r + 1][c + 1] && board[r][c] == board[r + 2][c + 2] && board[r][c] == board[r + 3][c + 3]) {
+                setWinner(r, c);
+                return;
+            }
+        }
+    }
 }
 
+function setWinner(r, c) {
+    let winner = document.getElementById("winner");
+    if(board[r][c] == playerRed) {
+        winner.innerText = "Red Wins!";
+    } else {
+        winner.innerText = "Yellow Wins!";
+    }
+    gameOver = true;
 
-function show(){
-    list.innerHTML=localStorage.getItem("data");
+    // Remove event listeners to prevent further moves
+    for(let r = 0; r < rows; r++) {
+        for(let c = 0; c < columns; c++) {
+            let tile = document.getElementById(r.toString() + "-" + c.toString());
+            tile.removeEventListener("click", setPiece);
+        }
+    }
 }
-
-show();
